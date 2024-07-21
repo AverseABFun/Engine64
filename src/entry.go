@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"log"
 	"os"
@@ -51,28 +52,24 @@ func LogEmptyNewline() {
 	logger.SetFlags(log.Lmsgprefix | log.Ltime)
 }
 
-func Draw(window screen.Window, actualScreen screen.Screen, size image.Point) (screen.Buffer, screen.Texture) {
-	var buffer screen.Buffer
-	var texture screen.Texture
+func Draw(window screen.Window, actualScreen screen.Screen, texture screen.Texture, size image.Point) {
+	window.Fill(image.Rect(0, 0, size.X, size.Y), color.NRGBA{0, 0, 0, 255}, screen.Over)
 
-	buffer, err := actualScreen.NewBuffer(size)
-	if err != nil {
-		Log(fmt.Sprintf("Failed to create buffer - %v", err), LogError)
-		return nil, nil
-	}
-	texture, err = actualScreen.NewTexture(size)
-	if err != nil {
-		Log(fmt.Sprintf("Failed to create texture - %v", err), LogError)
-		return nil, nil
-	}
-
-	CreateRect(buffer, 0, 0, size.X, size.Y, 255, 0, 0, 255)
-	texture.Upload(image.Point{0, 0}, buffer, buffer.Bounds())
+	CreateRect(texture, 0, 0, size.X, size.Y, color.RGBA{255, 0, 0, 255})
 
 	window.Draw(f64.Aff3{1, 0, 0, 0, 1, 0}, texture, texture.Bounds(), draw.Over, nil)
 	window.Publish()
+}
 
-	return buffer, texture
+func CreateTexture(window screen.Window, actualScreen screen.Screen, size image.Point) screen.Texture {
+	var texture screen.Texture
+
+	texture, err := actualScreen.NewTexture(size)
+	if err != nil {
+		Log(fmt.Sprintf("Failed to create texture - %v", err), LogError)
+		return nil
+	}
+	return texture
 }
 
 func main() {
@@ -80,15 +77,19 @@ func main() {
 	OpenWindow("Engine64", 800, 650, func(window screen.Window, actualScreen screen.Screen) {
 		Log("Window created", LogDebug)
 
-		var buffer, texture = Draw(window, actualScreen, image.Point{800, 650})
+		var windowSize = image.Point{800, 650}
+
+		var texture = CreateTexture(window, actualScreen, windowSize)
+		defer texture.Release()
+
+		Draw(window, actualScreen, texture, windowSize)
 
 		defer window.Release()
-		defer buffer.Release()
-		defer texture.Release()
-		// We have a window, now we need a loop to handle window events
-		// in regards to other windows in the OS
-		var cnt int // counter to help with messages
+
+		var cnt int
+
 		for {
+			Draw(window, actualScreen, texture, windowSize)
 			switch e := window.NextEvent().(type) {
 
 			case lifecycle.Event:
@@ -109,9 +110,9 @@ func main() {
 			case size.Event:
 				cnt++
 				Log(fmt.Sprintf("Size Event %d: Width %d Height %d", cnt, e.WidthPx, e.HeightPx), LogDebug)
-
-				buffer, texture = Draw(window, actualScreen, image.Point{e.WidthPx, e.HeightPx})
-
+				windowSize = image.Point{e.WidthPx, e.HeightPx}
+				texture.Release()
+				texture = CreateTexture(window, actualScreen, windowSize)
 				LogEmptyNewline()
 			}
 		}

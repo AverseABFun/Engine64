@@ -1,15 +1,12 @@
 package main
 
 import (
+	"image"
 	"image/color"
 
 	"golang.org/x/exp/shiny/screen"
 )
 
-func CreateRect(buffer screen.Buffer, x, y, width, height int, r, g, b, a uint8) {
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			buffer.RGBA().Set(i, j, color.RGBA{r, g, b, a})
-		}
-	}
+func CreateRect(texture screen.Texture, x, y, width, height int, clr color.RGBA) {
+	texture.Fill(image.Rect(x, y, x+width, y+height), clr, screen.Over)
 }
