@@ -52,10 +52,12 @@ func LogEmptyNewline() {
 	logger.SetFlags(log.Lmsgprefix | log.Ltime)
 }
 
+var tri = CreateSortedTriangle(Triangle{[3]image.Point{{0, 0}, {100, 0}, {0, 100}}})
+
 func Draw(window screen.Window, actualScreen screen.Screen, texture screen.Texture, size image.Point) {
 	window.Fill(image.Rect(0, 0, size.X, size.Y), color.NRGBA{0, 0, 0, 255}, screen.Over)
 
-	CreateRect(texture, 0, 0, size.X, size.Y, color.RGBA{255, 0, 0, 255})
+	CreateTri(texture, tri, color.RGBA{255, 0, 0, 255})
 
 	window.Draw(f64.Aff3{1, 0, 0, 0, 1, 0}, texture, texture.Bounds(), draw.Over, nil)
 	window.Publish()
