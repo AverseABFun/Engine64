@@ -1,4 +1,4 @@
-package main
+package graphics
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 // OpenWindow creates a new window with the specified title, width, and height.
 // If the width or height is less than or equal to 0, the default values are used.
 // The default width is 800 and the default height is 650.
-// The callback function is called with the created window and the current screen object. Please note that the window is *not* closed automatically. Also note that no operations are performed on the window by this function EVER.
+// The callback function is called with the created window and the current screen object. Please note that the window is *not* closed automatically. Also note that no operations are performed on the window by this function(other then creating it) EVER.
 func OpenWindow(title string, width int, height int, callback func(window screen.Window, screen screen.Screen)) {
 	if width <= 0 {
 		width = 800
